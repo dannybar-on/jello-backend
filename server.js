@@ -27,8 +27,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const boardRoutes = require('./api/board/board.routes')
-// const authRoutes = require('./api/auth/auth.routes')
-// const userRoutes = require('./api/user/user.routes')
+const authRoutes = require('./api/auth/auth.routes')
+const userRoutes = require('./api/user/user.routes')
 // const reviewRoutes = require('./api/review/review.routes')
 const {connectSockets} = require('./services/socket.service')
 
@@ -37,8 +37,8 @@ const setupAsyncLocalStorage = require('./middlewares/setupAls.middleware')
 app.all('*', setupAsyncLocalStorage)
 
 app.use('/api/board', boardRoutes)
-// app.use('/api/auth', authRoutes)
-// app.use('/api/user', userRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/user', userRoutes)
 // app.use('/api/review', reviewRoutes)
 connectSockets(http, session)
 
