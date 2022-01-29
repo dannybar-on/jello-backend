@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const userService = require('../user/user.service')
 const logger = require('../../services/logger.service')
-
+const { OAuth2Client } = require('google-auth-library')
 
 async function login(username, password) {
     logger.debug(`auth.service - login with username: ${username}`)
@@ -18,10 +18,29 @@ async function login(username, password) {
     return user
 }
 
-// (async ()=>{
-//     await signup('bubu', '123', 'Bubu Bi')
-//     await signup('mumu', '123', 'Mumu Maha')
-// })()
+
+async function googleLogin (tokenId) {
+    const googleUser = new OAuth2Client(tokenId)
+    async function verify() {
+        const ticket = await googleUser.verifyIdToken({
+            idToken: tokenId,
+            audience: '1075713010675-m4s5vqqfj2kdl5t43hpfcao569uq0c4o.apps.googleusercontent.com'
+        })
+        const payload = ticket.getPayload()
+        const userFullname = payload['name']
+        const userUsername = payload['email']
+        const userPassword = payload['given_name']
+        const userVerified = { fullname: userFullname, username: userUsername, password: `${userPassword}123`, imgUrl: '', mentions: [] }
+        return userVerified
+    }
+    const userVerified = await verify().catch(console.error)
+    let user = await userService.getByUsername(userVerified.username)
+    if (!user) user = await userService.add(userVerified)
+    delete user.password
+    user._id = user._id.toString()
+    return user
+
+}
     
 
 async function signup(username, password, fullname) {
@@ -39,5 +58,6 @@ async function signup(username, password, fullname) {
 
 module.exports = {
     signup,
-    login
+    login,
+    googleLogin
 }
